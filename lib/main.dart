@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' as prefix0;
 import 'package:path_provider/path_provider.dart';
 
 void main() {
@@ -92,6 +93,7 @@ class _HomeState extends State<Home> {
             ),
             duration: Duration(seconds: 2),
           );
+          Scaffold.of(context).removeCurrentSnackBar();
           Scaffold.of(context).showSnackBar(snack);
         });
       },
@@ -131,10 +133,14 @@ class _HomeState extends State<Home> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-                padding: EdgeInsets.all(17.0),
-                itemCount: _toDoList.length,
-                itemBuilder: buildItem),
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              child: ListView.builder(
+                  padding: EdgeInsets.all(17.0),
+                  itemCount: _toDoList.length,
+                  itemBuilder: buildItem
+              ),
+            )
           ),
         ],
       ),
@@ -159,5 +165,18 @@ class _HomeState extends State<Home> {
     } catch (e) {
       return null;
     }
+  }
+
+  Future<void> _refresh() async{
+    await Future.delayed(Duration(seconds: 1));
+    setState(() {
+      _toDoList.sort((a, b) {
+        if(a["ok"] && !b["ok"]) return 1;
+        else if(!a["ok"] && b["ok"]) return -1;
+        else return 0;
+      });
+
+      _saveData();
+    });
   }
 }
